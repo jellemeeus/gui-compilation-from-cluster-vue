@@ -3,6 +3,11 @@ import { ref } from 'vue'
 
 defineProps<{ msg: string }>()
 
+async function fetchClips() {
+  const result = await window.clips()
+  console.log(typeof(result), result)
+}
+
 const count = ref(0)
 </script>
 
@@ -17,11 +22,14 @@ const count = ref(0)
     </p>
   </div>
 
+  <div class="card">
+    <button type="button" @click="fetchClips()"></button>
+  </div>
+
   <p>
     Check out
-    <a href="https://vuejs.org/guide/quick-start.html#local" target="_blank"
-      >create-vue</a
-    >, the official Vue + Vite starter
+    <a href="https://vuejs.org/guide/quick-start.html#local" target="_blank">create-vue</a>, the official Vue + Vite
+    starter
   </p>
   <p>
     Install
