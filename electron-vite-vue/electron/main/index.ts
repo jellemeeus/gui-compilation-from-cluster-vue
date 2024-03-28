@@ -9,6 +9,10 @@ import toml from "toml";
 // Twitch API
 import { AppTokenAuthProvider } from "@twurple/auth";
 import { ApiClient } from "@twurple/api";
+// DB
+import { drizzle } from "drizzle-orm/better-sqlite3";
+import Database from "better-sqlite3";
+import { ClipsTable } from "../schema";
 
 globalThis.__filename = fileURLToPath(import.meta.url);
 globalThis.__dirname = dirname(__filename);
@@ -124,7 +128,7 @@ async function handleGetClips() {
 
   const authProvider = new AppTokenAuthProvider(clientId, clientSecret);
   const apiClient = new ApiClient({ authProvider });
-  const broadcasterName = "summit1g";
+  const broadcasterName = "turk";
   let broadcaster;
   try {
     broadcaster = await apiClient.users.getUserByName(broadcasterName);
@@ -138,83 +142,31 @@ async function handleGetClips() {
   const clips = await apiClient.clips.getClipsForBroadcaster(broadcaster.id, {
     limit: 100,
   });
-  console.log(clips);
 
+  const sqlite = new Database("sqlite.db");
+  const db = drizzle(sqlite);
 
-  //import { open } from "sqlite";
+  const clipsArray = clips.data.map((clip) => ({
+    id: clip.id,
+    url: clip.url,
+    embedUrl: clip.embedUrl,
+    broadcasterId: clip.broadcasterId,
+    broadcasterDisplayName: clip.broadcasterDisplayName,
+    creatorId: clip.creatorId,
+    creatorDisplayName: clip.creatorDisplayName,
+    videoId: clip.videoId,
+    gameId: clip.gameId,
+    language: clip.language,
+    title: clip.title,
+    views: clip.views,
+    creationDate: clip.creationDate,
+    thumbnailUrl: clip.thumbnailUrl,
+    duration: clip.duration,
+    vodOffset: clip.vodOffset,
+    isFeatured: clip.isFeatured ? true : false,
+  }));
 
-  //const db = await open({
-  //  filename: "clips.db",
-  //  driver: sqlite.Database,
-  //});
-
-  //await db.exec(`
-  //  CREATE TABLE IF NOT EXISTS clips (
-  //    id TEXT PRIMARY KEY, 
-  //    url TEXT,
-  //    embed_url TEXT,
-  //    broadcaster_id TEXT, 
-  //    broadcaster_name TEXT,
-  //    creator_id TEXT,
-  //    creator_name TEXT,
-  //    video_id TEXT,
-  //    game_id TEXT,
-  //    language TEXT,
-  //    title TEXT,
-  //    view_count INTEGER,
-  //    created_at DATETIME, 
-  //    thumbnail_url TEXT
-  //  )
-  //`);
-
-  //await db.exec(`
-  //  BEGIN TRANSACTION;
-  //`);
-
-  //for (const clip of clips) {
-  //  await db.run(
-  //    `
-  //    INSERT INTO clips (
-  //      id,
-  //      url,
-  //      embed_url,
-  //      broadcaster_id,
-  //      broadcaster_name,
-  //      creator_id,
-  //      creator_name,
-  //      video_id,
-  //      game_id,
-  //      language,
-  //      title,
-  //      view_count,
-  //      created_at,
-  //      thumbnail_url
-  //    ) VALUES (
-  //      ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
-  //    )
-  //  `,
-  //    [
-  //      clip.id,
-  //      clip.url,
-  //      clip.embedUrl,
-  //      clip.broadcasterId,
-  //      clip.broadcasterName,
-  //      clip.creatorId,
-  //      clip.creatorName,
-  //      clip.videoId,
-  //      clip.gameId,
-  //      clip.language,
-  //      clip.title,
-  //      clip.viewCount,
-  //      clip.createdAt,
-  //      clip.thumbnailUrl,
-  //    ]
-  //  );
-  //}
-
-  //await db.exec(`
-  //  COMMIT;
-  //`);
+  await db.insert(ClipsTable).values(clipsArray).onConflictDoNothing();
 }
 
 //

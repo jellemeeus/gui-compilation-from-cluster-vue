@@ -4,6 +4,7 @@ import { ref } from 'vue'
 defineProps<{ msg: string }>()
 
 async function fetchClips() {
+  // @ts-ignore:next-line
   await window.ipcRenderer.getClips()
 }
 
