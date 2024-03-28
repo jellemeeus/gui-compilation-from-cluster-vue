@@ -107,11 +107,10 @@ app.on('activate', () => {
 
 async function handleGetClips() {
   console.log("Async: handleGetClips")
-  //win?.webContents.send('clips:getClips()', 'webcontents send')
-  return "test"
 }
 //
-ipcMain.handle('clips:getClips', handleGetClips)
+ipcMain.on('clips:getClips', handleGetClips)
+
 
 // New window example arg: new windows url
 ipcMain.handle('open-win', (_, arg) => {

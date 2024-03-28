@@ -4,8 +4,7 @@ import { ref } from 'vue'
 defineProps<{ msg: string }>()
 
 async function fetchClips() {
-  const result = await window.clips()
-  console.log(typeof(result), result)
+  await window.ipcRenderer.getClips()
 }
 
 const count = ref(0)
@@ -23,7 +22,7 @@ const count = ref(0)
   </div>
 
   <div class="card">
-    <button type="button" @click="fetchClips()"></button>
+    <button type="button" @click="fetchClips()">Fetch Clips</button>
   </div>
 
   <p>

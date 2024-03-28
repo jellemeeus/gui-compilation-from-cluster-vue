@@ -18,6 +18,9 @@ contextBridge.exposeInMainWorld('ipcRenderer', {
     const [channel, ...omit] = args
     ipcRenderer.invoke(channel, ...omit)
   },
+  getClips() {
+    return ipcRenderer.send('clips:getClips')
+  },
 })
 
 contextBridge.exposeInMainWorld('clips', () => 'expose');
