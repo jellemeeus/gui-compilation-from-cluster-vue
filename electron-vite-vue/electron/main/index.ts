@@ -3,6 +3,10 @@ import { release } from 'node:os'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
+// Config.toml
+import { readFileSync } from "fs";
+import toml from 'toml'
+
 globalThis.__filename = fileURLToPath(import.meta.url)
 globalThis.__dirname = dirname(__filename)
 
@@ -43,6 +47,8 @@ let win: BrowserWindow | null = null
 const preload = join(__dirname, '../preload/index.mjs')
 const url = process.env.VITE_DEV_SERVER_URL
 const indexHtml = join(process.env.DIST, 'index.html')
+
+
 
 async function createWindow() {
   win = new BrowserWindow({
@@ -104,13 +110,15 @@ app.on('activate', () => {
   }
 })
 
-
 async function handleGetClips() {
   console.log("Async: handleGetClips")
+
+  const config = toml.parse(readFileSync('config.toml', 'utf-8'))
+  process.env.TWITCH_CLIENT_ID = config.twitch["client-id"];
+  process.env.TWITCH_CLIENT_SECRET = config.twitch["client-secret"];
 }
 //
 ipcMain.on('clips:getClips', handleGetClips)
-
 
 // New window example arg: new windows url
 ipcMain.handle('open-win', (_, arg) => {
