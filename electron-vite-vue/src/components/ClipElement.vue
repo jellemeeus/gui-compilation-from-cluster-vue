@@ -31,7 +31,7 @@ const isPlayerHidden = ref(true)
       />
     </figure>
     <div class="card-body">
-      <h3 class="card-title">{{ clip.creator }} {{ clip.game }}</h3>
+      <h3 class="card-title card_content">{{ clip.creator }} {{ clip.game }}</h3>
 <!--
       <div class="flex flex-row">
         <div v-if="clip.embed_url == null" class="badge badge-secondary">
@@ -40,8 +40,8 @@ const isPlayerHidden = ref(true)
       </div>
 -->
 
-      <p>{{ clip.title }}</p>
-      <p>
+      <p class="card_content">{{ clip.title }}</p>
+      <p class="card_content">
         {{ clip.duration }}s {{ clip.view_count }} {{ clip.created_at }}
         {{ clip.published }} {{ clip.language }}
       </p>
@@ -115,6 +115,10 @@ const isPlayerHidden = ref(true)
 <style scoped>
 .card {
   padding: 0.5em;
+}
+
+.card_content {
+text-shadow: black 0px 0px 3px;
 }
 
 .a {
