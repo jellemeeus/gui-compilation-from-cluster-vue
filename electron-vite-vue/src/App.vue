@@ -1,8 +1,33 @@
 <script setup lang="ts">
 import ClipElement from './components/ClipElement.vue'
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 
 import { Clip } from "./components/models";
+
+let clipData: Array<Clip> = []
+
+function loadMore() {
+  setTimeout(e => {
+    for (var i = 0; i < 20; i++) {
+      const clipToAdd: Clip | undefined = clipData.shift();
+      if (clipToAdd) {
+        clips.value.push(clipToAdd);
+      }
+    }
+  }, 200);
+}
+
+// Detect when scrolled to bottom.
+onMounted(() => {
+  const listElm = document.querySelector('#infinite-list');
+  if (listElm) {
+    listElm.addEventListener('scroll', e => {
+      if (listElm.scrollTop + listElm.clientHeight >= listElm.scrollHeight) {
+        loadMore();
+      }
+    });
+  }
+})
 
 const clips = ref<Clip[]>([]);
 const compilation = ref<Clip[]>([]);
@@ -48,6 +73,7 @@ function clip_data_to_compilation(c: Clip): Clip {
 }
 
 function fill_from_clips(clips_data: string | any[]) {
+  console.log(clips_data)
   let newClips: Array<Clip> = []
   Object.values(clips_data)
     .forEach((clip: Clip) => (
@@ -56,19 +82,14 @@ function fill_from_clips(clips_data: string | any[]) {
   // Filter clips that are present in compilation
   const compURLs = compilation.value.map((clip: Clip) => clip.url)
   newClips = newClips.filter(clip => !compURLs.includes(clip.url))
-  clips.value = newClips;
+  clipData = newClips
+  loadMore();
 }
 
 async function loadClips() {
   // @ts-ignore:next-line
   const data = await window.ipcRenderer.readJSON('clips.json');
   fill_from_clips(data)
-
-  console.log({ data })
-  for (const d of data) {
-    console.log(d)
-  }
-  console.log(clips.value)
 }
 
 function fill_from_compilation(compilation_data: string | any[]) {
@@ -195,9 +216,10 @@ async function addClip(url: string) {
 
 <template>
   <div class="flex flex-row h-[87dvh] mt-2">
-    <div class="flex-none basis-6/12 overflow-y-auto">
+    <div id="infinite-list" class="flex-none basis-6/12 overflow-y-auto">
       <h1 class="text-2xl font-extrabold dark:text-white">Clips</h1>
-      <ClipElement @add="addClip" @hide="hideClip" v-for="x in clips" :clip=x :isCompilation="false"></ClipElement>
+        <!-- list -->
+        <ClipElement @add="addClip" @hide="hideClip" v-for="x in clips" :clip=x :isCompilation="false"></ClipElement>
     </div>
     <div class="flex-none basis-6/12 overflow-y-auto">
       <h1 class="text-2xl font-extrabold dark:text-white">Compilation</h1>
