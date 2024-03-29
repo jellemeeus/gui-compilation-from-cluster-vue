@@ -98,7 +98,7 @@ const isPlayerHidden = ref(true)
         </button>
       </div>
 
-      <div v-if="!isPlayerHidden && clip.embed_url !== null" class="h-80">
+      <div v-if="!isPlayerHidden" class="h-80">
         <iframe
           :src="calculateEmbedURL(clip)"
           class="max-h-80"
