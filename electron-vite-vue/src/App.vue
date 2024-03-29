@@ -2,7 +2,7 @@
 import ClipElement from './components/ClipElement.vue'
 import { ref } from 'vue'
 
-const data = ref([]);
+const clips = ref([]);
 
 
 async function fetchClips() {
@@ -10,10 +10,10 @@ async function fetchClips() {
   await window.ipcRenderer.getClips()
 }
 
-async function loadJSON() {
+async function loadClips() {
   // @ts-ignore:next-line
-  data.value = await window.ipcRenderer.readJSON('clips.json');
-  console.log(data.value)
+  clips.value = await window.ipcRenderer.readJSON('clips.json');
+  console.log(clips.value)
 }
 </script>
 
@@ -24,14 +24,14 @@ async function loadJSON() {
   <div class="flex flex-row h-[90dvh]">
     <div class="flex-none basis-6/12 overflow-y-auto">
       <h2>Clips</h2>
-      <ClipElement v-for="x in data" :clip=x></ClipElement>
+      <ClipElement v-for="x in clips" :clip=x></ClipElement>
     </div>
     <div class="flex-none basis-6/12 overflow-y-auto">
       <h2>Comp</h2>
     </div>
   </div>
   <div class="flex-none basis-full mt-4">
-    <button class="btn btn-secondary" type="button" @click="loadJSON()">Load JSON</button>
+    <button class="btn btn-secondary" type="button" @click="loadClips()">Load JSON</button>
     <button class="btn btn-primary" type="button" @click="fetchClips()">Fetch Clips</button>
   </div>
 </template>
