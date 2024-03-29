@@ -1,5 +1,4 @@
 export type Clip = {
-  index: number;
   creator: string;
   url: string;
   duration: number;

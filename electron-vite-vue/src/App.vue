@@ -2,56 +2,62 @@
 import ClipElement from './components/ClipElement.vue'
 import { computed, ref } from 'vue'
 
-import { Clip } from 'src/components/models.ts';
+import { Clip } from "./components/models";
 
-const clips = ref(<Clip>[]);
-const compilation = ref(<Clip>[]);
+
+const clips = ref<Clip[]>([]);
+const compilation = ref<Clip[]>([]);
 
 const amountOfCompilation = computed(() => {
   return compilation.value.length
 })
 
 const totalDuration = computed(() => {
-  return compilation.value.reduce((prev, curr) => prev + curr.duration, 0)
+  return compilation.value.reduce((prev: number, curr: Clip) => prev + curr.duration, 0)
 })
 
 const frequency = computed(() => {
   if (compilation.value.length <= 0) {
-    return {}
+    return {};
   }
-  let freq = {}
-  compilation.value.forEach((clip) => freq[clip.creator] = (freq[clip.creator] || 0) + 1)
-  return freq
-})
+  let freq: { [key: string]: number } = {};
+  compilation.value.forEach((clip: Clip) => {
+    if (freq[clip.creator]) {
+      freq[clip.creator] += 1;
+    } else {
+      freq[clip.creator] = 1;
+    }
+  });
+  return freq;
+});
 
 
-function clip_data_to_compilation(c) {
+
+function clip_data_to_compilation(c: Clip): Clip {
   console.debug(`clip_data_to_compilation ${c}`)
-  return {
-    "download": 0,
-    "error": 0,
+  return <Clip>{
+    "creator": c.creator,
     "url": c.url,
+    "duration": c.duration,
+    "view_count": c.view_count,
     "created_at": c.created_at,
     "game_id": c.game_id,
     "game": c.game,
-    "creator": c.creator,
     "language": c.language,
     "thumbnail_url": c.thumbnail_url,
     "embed_url": c.embed_url,
     "title": c.title,
-    "duration": c.duration,
-    "view_count": c.view_count,
   }
 }
 
-function fill_from_clips(clips_data) {
+function fill_from_clips(clips_data: string | any[]) {
   let newClips: Array<Clip> = []
   Object.values(clips_data)
-    .forEach((clip) => (
+    .forEach((clip: Clip) => (
       newClips.push(clip_data_to_compilation(clip))
     ));
   // Filter clips that are present in compilation
-  const compURLs = compilation.value.map(clip => clip.url)
+  const compURLs = compilation.value.map((clip: Clip) => clip.url)
   newClips = newClips.filter(clip => !compURLs.includes(clip.url))
   clips.value = newClips;
 }
@@ -69,7 +75,7 @@ async function loadClips() {
 }
 
 
-function fill_from_compilation(compilation_data) {
+function fill_from_compilation(compilation_data: string | any[]) {
   let newClips: Array<Clip> = []
   console.debug(`Filling compilation with: ${compilation_data}`)
   for (let i = 0; i < compilation_data.length; i++) {
@@ -79,7 +85,7 @@ function fill_from_compilation(compilation_data) {
 }
 
 async function saveCompilation() {
-  const compilationCSV = clips.value.map((clip) => clip.url).join(',');
+  const compilationCSV = clips.value.map((clip: Clip) => clip.url).join(',');
   console.log(compilationCSV)
   // @ts-ignore:next-line
   await window.ipcRenderer.writeFile('compilation.csv', compilationCSV);
@@ -97,16 +103,16 @@ async function shuffleCompilation() {
 
 
 async function removeComp(url: string) {
-  compilation.value = compilation.value.filter(clip => clip.url !== url)
+  compilation.value = compilation.value.filter((clip: Clip) => clip.url !== url)
 }
 
 async function hideClip(url: string) {
-  clips.value = clips.value.filter(clip => clip.url !== url)
+  clips.value = clips.value.filter((clip: Clip) => clip.url !== url)
 }
 
 async function upComp(url: string) {
   console.log('up')
-  const index = compilation.value.findIndex(clip => clip.url === url);
+  const index = compilation.value.findIndex((clip: Clip) => clip.url === url);
   if (index > 0) {
     const clipToMove = compilation.value[index];
     compilation.value.splice(index, 1);
@@ -116,7 +122,7 @@ async function upComp(url: string) {
 
 async function downComp(url: string) {
   console.log('down')
-  const index = compilation.value.findIndex(clip => clip.url === url);
+  const index = compilation.value.findIndex((clip: Clip) => clip.url === url);
   if (index < compilation.value.length - 1) {
     const temp = compilation.value[index];
     compilation.value[index] = compilation.value[index + 1];
@@ -126,7 +132,7 @@ async function downComp(url: string) {
 
 async function topComp(url: string) {
   console.log('top')
-  const index = compilation.value.findIndex(clip => clip.url === url);
+  const index = compilation.value.findIndex((clip: { url: string; }) => clip.url === url);
   if (index > 0) {
     const temp = compilation.value[index];
     compilation.value.splice(index, 1);
@@ -136,7 +142,7 @@ async function topComp(url: string) {
 
 async function bottomComp(url: string) {
   console.log('bottom')
-  const index = compilation.value.findIndex(clip => clip.url === url);
+  const index = compilation.value.findIndex((clip: { url: string; }) => clip.url === url);
 
   if (index < compilation.value.length - 1) {
     const temp = compilation.value[index];
@@ -146,43 +152,49 @@ async function bottomComp(url: string) {
 }
 
 async function addMostViews() {
-  const clipToAdd = clips.value.shift();
-  compilation.value.push(clipToAdd)
+  const clipToAdd: Clip | undefined = clips.value.shift();
+  if (clipToAdd !== undefined) {
+    compilation.value.push(clipToAdd)
+  }
 }
 
 async function addLowFrequency() {
   function getLowestFrequencyIndex() {
     // Check for undefined frequency
     let index = clips.value.findIndex(
-      (clip) => frequency[clip.creator] === undefined
-    )
+      (clip: Clip) =>
+        frequency.value[clip.creator as keyof typeof frequency.value] ===
+        undefined
+    );
     if (index >= 0) {
-      return index
+      return index;
     }
     // Loop through frequencies from 1 up counting matches
     for (let i = 1; i < 128; i++) {
       index = clips.value.findIndex(
-        (clip) => frequency[clip.creator] === i
-      )
+        (clip: Clip) => frequency.value[clip.creator] === i
+      );
       if (index >= 0) {
-        return index
+        return index;
       }
     }
   }
   const index = getLowestFrequencyIndex();
-  console.log(index)
-  const clipToAdd = clips.value[index];
-  compilation.value.push(clipToAdd)
-  clips.value.splice(index, 1);
+  console.log(index);
+  const clipToAdd = clips.value[index as number];
+  compilation.value.push(clipToAdd);
+  clips.value.splice(index as number, 1);
 }
 
+
+
 async function addClip(url: string) {
-  clips.value.forEach((clip) => {
+  clips.value.forEach((clip: Clip) => {
     if (clip.url === url) {
       compilation.value.push(clip)
     }
   });
-  clips.value = clips.value.filter((clip) => clip.url !== url);
+  clips.value = clips.value.filter((clip: Clip) => clip.url !== url);
 }
 
 </script>
@@ -216,41 +228,7 @@ async function addClip(url: string) {
 </template>
 
 <style>
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-
-.logo.electron:hover {
-  filter: drop-shadow(0 0 2em #9FEAF9);
-}
-
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-
-.logo.vue:hover {
-  filter: drop-shadow(0 0 2em #42b883aa);
-}
-
-.fixed-bottom {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-}
-
 .buttons {
   padding-bottom: 10px;
-}
-
-.clips-and-compilation {
-  height: calc(100% - 50px);
-}
-
-.read-the-docs {
-  color: #888;
 }
 </style>
