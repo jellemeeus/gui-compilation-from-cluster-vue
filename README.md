@@ -1,4 +1,5 @@
-# video-compilations
+# gui-compilation-from-cluster-vue
+
 
 <div id="top"></div>
 
@@ -35,6 +36,9 @@
 ## About The Project
 Rewrite of GUI https://github.com/jellemeeus/gui-compilation-from-cluster
 
+-  embedded video player
+
+
 Select/Edit clips
 
 clips.json with clips to select.
@@ -51,7 +55,6 @@ flowchart LR;
 ```
 GUI Screenshot
 ![product-screenshot](./images/gui.png)
-
 
 Old GUI
 https://github.com/jellemeeus/gui-compilation-from-cluster
@@ -95,7 +98,6 @@ In the project directory, you can run:
 ## Acknowledgments
 
 <p align="right">(<a href="#top">back to top</a>)</p>
-
 
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
