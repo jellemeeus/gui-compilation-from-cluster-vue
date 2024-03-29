@@ -16,17 +16,15 @@ const isPlayerHidden = ref(true)
 
 <template>
   <div class="card bg-base-100 shadow-xl image-full text-left">
-    <figure class="h-75">
+    <figure >
       <img
         :src="clip.thumbnail_url"
-        width="100%"
-        class="max-h-80"
         @error="
           (e) => {
             if (e.target) {
             e.target as HTMLImageElement
               (e.target as HTMLImageElement).onerror = null;
-              (e.target as HTMLImageElement).src = 'https://placehold.co/600x400?text=Placeholder';
+              (e.target as HTMLImageElement).src = 'https://placehold.co/500x284?text=Placeholder';
             }
           }
         "
@@ -73,7 +71,7 @@ const isPlayerHidden = ref(true)
       </div>
 
       <div v-if="!isCompilation" class="justify-end">
-        <button @click="$emit('add', clip.url)" class="btn btn-primary">
+        <button @click="$emit('add', clip.url)" class="btn btn-success">
           <i class="fa-regular fa-plus"></i>
         </button>
         <button @click="$emit('hide', clip.url)" class="btn btn-error">
@@ -81,16 +79,16 @@ const isPlayerHidden = ref(true)
         </button>
       </div>
       <div v-else class="justify-begin">
-        <button @click="$emit('up', clip.url)" class="btn btn-primary">
+        <button @click="$emit('up', clip.url)" class="btn btn-success">
           Up
         </button>
-        <button @click="$emit('down', clip.url)" class="btn btn-primary">
+        <button @click="$emit('down', clip.url)" class="btn btn-success">
           Down
         </button>
-        <button @click="$emit('top', clip.url)" class="btn btn-success">
+        <button @click="$emit('top', clip.url)" class="btn btn-warning">
           Top
         </button>
-        <button @click="$emit('bottom', clip.url)" class="btn btn-success">
+        <button @click="$emit('bottom', clip.url)" class="btn btn-warning">
           Bottom
         </button>
         <button @click="$emit('remove', clip.url)" class="btn btn-error">
