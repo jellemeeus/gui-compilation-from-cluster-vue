@@ -29,10 +29,9 @@ globalThis.__dirname = dirname(__filename);
 //
 process.env.DIST_ELECTRON = join(__dirname, "..");
 process.env.DIST = join(process.env.DIST_ELECTRON, "../dist");
-//process.env.VITE_PUBLIC = process.env.VITE_DEV_SERVER_URL
-//  ? join(process.env.DIST_ELECTRON, "../public")
-//  : process.env.DIST;
-process.env.VITE_PUBLIC = process.env.DIST;
+process.env.VITE_PUBLIC = process.env.VITE_DEV_SERVER_URL
+  ? join(process.env.DIST_ELECTRON, "../public")
+  : process.env.DIST;
 
 // Disable GPU Acceleration for Windows 7
 if (release().startsWith("6.1")) app.disableHardwareAcceleration();
@@ -120,6 +119,8 @@ async function createWindow() {
   win = new BrowserWindow({
     title: "Main window",
     icon: join(process.env.VITE_PUBLIC, "favicon.ico"),
+    width: 960,
+    height: 1000,
     webPreferences: {
       preload,
       // Warning: Enable nodeIntegration and disable contextIsolation is not secure in production
@@ -138,7 +139,6 @@ async function createWindow() {
     win.webContents.openDevTools();
   } else {
     win.loadFile(indexHtml);
-    win.webContents.openDevTools();
   }
 
   // Test actively push message to the Electron-Renderer
@@ -202,7 +202,7 @@ async function handleGetClips() {
 
   const authProvider = new AppTokenAuthProvider(clientId, clientSecret);
   const apiClient = new ApiClient({ authProvider });
-  const broadcasterName = "turk";
+  const broadcasterName = "summit1g";
   let broadcaster;
   try {
     broadcaster = await apiClient.users.getUserByName(broadcasterName);
