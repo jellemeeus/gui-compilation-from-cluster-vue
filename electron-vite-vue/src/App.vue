@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import HelloWorld from './components/HelloWorld.vue'
+import ClipElement from './components/ClipElement.vue'
 import { ref } from 'vue'
 
-const data = ref();
+const data = ref([]);
 
 
 async function fetchClips() {
@@ -15,59 +15,29 @@ async function loadJSON() {
   data.value = await window.ipcRenderer.readJSON('clips.json');
   console.log(data.value)
 }
-
-
-type Data = {
-  n: number,
-  clips: any,
-  project: any,
-}
-
 </script>
 
 <template>
-  <HelloWorld msg="Electron + Vite + Vue" />
-  <div class="content">
-    <div class="row clips-and-compilation">
-      <div class="clips col-6">
-        <h2>Clips</h2>
-        <h2>Clips</h2>
-        <h2>Clips</h2>
-        <h2>Clips</h2>
-        <h2>Clips</h2>
-        <h2>Clips</h2>
-        <h2>Clips</h2>
-        <h2>Clips</h2>
-        <h2>Clips</h2>
-        <h2>Clips</h2>
-        <h2>Clips</h2>
-        <h2>Clips</h2>
-        <h2>Clips</h2>
-        <h2>Clips</h2>
-      </div>
-
-      <div class="compilation col-6">
-        <h2>Compilation</h2>
-      </div>
+  <div>
+    Title:
+</div>
+  <div class="flex flex-row h-[90dvh]">
+    <div class="flex-none basis-6/12 overflow-y-auto">
+      <h2>Clips</h2>
+      <ClipElement v-for="x in data" :clip=x></ClipElement>
     </div>
-
-    <div class="row buttons fixed-bottom">
-      <div class="col-12">
-        <button class="btn btn-secondary" type="button" @click="loadJSON()">Load JSON</button>
-<button class="btn">Hello daisyui</button>
-        <button class="btn btn-primary" type="button" @click="fetchClips()">Fetch Clips</button>
-      </div>
+    <div class="flex-none basis-6/12 overflow-y-auto">
+      <h2>Comp</h2>
     </div>
+  </div>
+  <div class="flex-none basis-full mt-4">
+    <button class="btn btn-secondary" type="button" @click="loadJSON()">Load JSON</button>
+    <button class="btn btn-primary" type="button" @click="fetchClips()">Fetch Clips</button>
   </div>
 </template>
 
-<style>
-.flex-center {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
 
+<style>
 .logo {
   height: 6em;
   padding: 1.5em;
@@ -105,18 +75,4 @@ type Data = {
 .read-the-docs {
   color: #888;
 }
-
-.row {
-  display: flex;
-  flex-direction: row;
-}
-
-.col-6 {
-  flex: 6;
-}
-
-.col-12 {
-  flex: 12;
-}
-
 </style>
