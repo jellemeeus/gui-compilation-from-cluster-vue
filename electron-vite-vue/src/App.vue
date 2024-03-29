@@ -4,7 +4,6 @@ import { computed, ref } from 'vue'
 
 import { Clip } from "./components/models";
 
-
 const clips = ref<Clip[]>([]);
 const compilation = ref<Clip[]>([]);
 
@@ -30,8 +29,6 @@ const frequency = computed(() => {
   });
   return freq;
 });
-
-
 
 function clip_data_to_compilation(c: Clip): Clip {
   console.debug(`clip_data_to_compilation ${c}`)
@@ -74,7 +71,6 @@ async function loadClips() {
   console.log(clips.value)
 }
 
-
 function fill_from_compilation(compilation_data: string | any[]) {
   let newClips: Array<Clip> = []
   console.debug(`Filling compilation with: ${compilation_data}`)
@@ -82,10 +78,11 @@ function fill_from_compilation(compilation_data: string | any[]) {
     newClips.push(compilation_data[i])
   }
   console.log(newClips)
+  compilation.value = newClips
 }
 
 async function saveCompilation() {
-  const compilationCSV = clips.value.map((clip: Clip) => clip.url).join(',');
+  const compilationCSV = compilation.value.map((clip: Clip) => clip.url).join(',');
   console.log(compilationCSV)
   // @ts-ignore:next-line
   await window.ipcRenderer.writeFile('compilation.csv', compilationCSV);
@@ -94,7 +91,7 @@ async function saveCompilation() {
 async function loadCompilation() {
   // @ts-ignore:next-line
   const data = await window.ipcRenderer.readJSON('compilation.json');
-  fill_from_compilation(data)
+  fill_from_compilation(data.clips)
 }
 
 async function shuffleCompilation() {
@@ -186,8 +183,6 @@ async function addLowFrequency() {
   clips.value.splice(index as number, 1);
 }
 
-
-
 async function addClip(url: string) {
   clips.value.forEach((clip: Clip) => {
     if (clip.url === url) {
@@ -196,17 +191,16 @@ async function addClip(url: string) {
   });
   clips.value = clips.value.filter((clip: Clip) => clip.url !== url);
 }
-
 </script>
 
 <template>
-  <div class="flex flex-row h-[85dvh] mt-5">
+  <div class="flex flex-row h-[87dvh] mt-2">
     <div class="flex-none basis-6/12 overflow-y-auto">
-      <h1 class="text-3xl font-extrabold dark:text-white">Clips</h1>
+      <h1 class="text-2xl font-extrabold dark:text-white">Clips</h1>
       <ClipElement @add="addClip" @hide="hideClip" v-for="x in clips" :clip=x :isCompilation="false"></ClipElement>
     </div>
     <div class="flex-none basis-6/12 overflow-y-auto">
-      <h1 class="text-3xl font-extrabold dark:text-white">Compilation</h1>
+      <h1 class="text-2xl font-extrabold dark:text-white">Compilation</h1>
       <ClipElement @up="upComp" @down="downComp" @top="topComp" @bottom="bottomComp" @remove="removeComp"
         :isCompilation="true" v-for="x in compilation" :clip=x></ClipElement>
     </div>
@@ -219,10 +213,10 @@ async function addClip(url: string) {
   </div>
   <div class="flex-none basis-full mt-4">
     <button class="btn btn-success" type="button" @click="loadClips()">Read clips.json</button>
-    <button class="btn btn-primary" type="button" @click="loadCompilation()">Read compilation.json</button>
-    <button class="btn btn-primary" type="button" @click="shuffleCompilation()">Shuffle compilation</button>
-    <button class="btn btn-primary" type="button" @click="addLowFrequency()">Select Low Freq</button>
-    <button class="btn btn-primary" type="button" @click="addMostViews()">Select Most Views</button>
+    <button class="btn btn-success" type="button" @click="loadCompilation()">Read compilation.json</button>
+    <button class="btn btn-warning" type="button" @click="shuffleCompilation()">Shuffle comp</button>
+    <button class="btn btn-warning" type="button" @click="addLowFrequency()">Select Low Freq</button>
+    <button class="btn btn-warning" type="button" @click="addMostViews()">Select Most Views</button>
     <button class="btn btn-error" type="button" @click="saveCompilation()">Save compilation.csv</button>
   </div>
 </template>
