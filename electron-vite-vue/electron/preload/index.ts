@@ -21,6 +21,12 @@ contextBridge.exposeInMainWorld('ipcRenderer', {
   getClips() {
     return ipcRenderer.send('clips:getClips')
   },
+  readJSON: (fileName) => {
+      return ipcRenderer.invoke('read-json', fileName)
+  },
+  writeFile: (fileName, fileContent) => {
+      ipcRenderer.send('write-file', fileName, fileContent);
+  },
 })
 
 contextBridge.exposeInMainWorld('clips', () => 'expose');

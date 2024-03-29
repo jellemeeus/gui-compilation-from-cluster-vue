@@ -4,7 +4,7 @@ import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 // Config.toml
-import { readFileSync } from "fs";
+import { readFileSync, writeFileSync } from "fs";
 import toml from "toml";
 // Twitch API
 import { AppTokenAuthProvider } from "@twurple/auth";
@@ -114,6 +114,18 @@ app.on("activate", () => {
   } else {
     createWindow();
   }
+});
+
+ipcMain.handle('read-json', (_, fileName) => {
+    const fileContent = readFileSync(fileName, { encoding: 'utf-8' })
+    console.log(`read json! ${fileContent}`)
+    const json = JSON.parse(fileContent);
+    return json
+});
+
+ipcMain.on('write-file', (_, fileName, fileContent) => {
+    console.log(`saving! ${fileContent}`);
+    writeFileSync(fileName, fileContent);
 });
 
 async function handleGetClips() {
