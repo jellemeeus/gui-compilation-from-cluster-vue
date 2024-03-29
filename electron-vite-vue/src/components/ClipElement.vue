@@ -46,17 +46,19 @@ const isPlayerHidden = ref(true)
       <div class="card-actions justify-end">
         <button v-if="clip.embed_url != null" @click="() => { isPlayerHidden = !(isPlayerHidden) }"
           class="btn btn-primary">
-         {{ isPlayerHidden ? "View Player" : "Hide Player" }}
+          <i v-if="isPlayerHidden" class="fa-solid fa-video"></i>
+          <i v-if="!isPlayerHidden" class="fa-solid fa-video-slash"></i>
         </button>
 
-        <a role="button" target="_blank" :href="clip.url" class="btn btn-primary">Link</a>
+        <a role="button" target="_blank" :href="clip.url" class="btn btn-primary">
+          <i class="fa-regular fa-window-restore"></i>
+          Link
+        </a>
 
+        <button @click="() => { isPlayerHidden = !(isPlayerHidden) }" class="btn btn-primary">
 
-        <button @click="() => { isPlayerHidden = !(isPlayerHidden) }"
-          class="btn btn-primary">
-          Add
+          <i class="fa-regular fa-plus"></i>
         </button>
-
       </div>
 
       <div v-if="!isPlayerHidden && clip.embed_url !== null" class="h-80">
