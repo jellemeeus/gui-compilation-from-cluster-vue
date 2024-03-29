@@ -11,6 +11,8 @@ async function fetchClips() {
   await window.ipcRenderer.getClips()
 }
 
+
+
 function clip_data_to_compilation(c) {
   console.debug(`clip_data_to_compilation ${c}`)
   return {
@@ -54,6 +56,31 @@ async function loadClips() {
   console.log(clips.value)
 }
 
+
+function fill_from_compilation(compilation_data) {
+  let newClips: Array<Clip> = []
+  console.debug(`Filling compilation with: ${compilation_data}`)
+  for (let i = 0; i < compilation_data.length; i++) {
+    newClips.push(compilation_data[i])
+  }
+  console.log(newClips)
+}
+
+async function saveCompilation() {
+  const compilationArray = clips.value.filter((clip) => clip.is_selected);
+  const compilationCSV = compilationArray.map((clip) => clip.url).join(',');
+  console.log(compilationCSV)
+  // @ts-ignore:next-line
+  await window.ipcRenderer.writeFile('compilation.csv', compilationCSV);
+}
+
+async function loadCompilation() {
+  // @ts-ignore:next-line
+  const data = await window.ipcRenderer.readJSON('compilation.json');
+  fill_from_compilation(data)
+}
+
+
 async function removeClip(url: string) {
   clips.value.forEach((clip) => {
     if (clip.url === url) {
@@ -79,23 +106,22 @@ async function addClip(url: string) {
   <div class="flex flex-row h-[85dvh]">
     <div class="flex-none basis-6/12 overflow-y-auto">
       <h2>Clips</h2>
-      <ClipElement @add="addClip" v-for="x in clips.filter( (clip) => !clip.is_selected)" :clip=x></ClipElement>
+      <ClipElement @add="addClip" v-for="x in clips.filter((clip) => !clip.is_selected)" :clip=x></ClipElement>
     </div>
     <div class="flex-none basis-6/12 overflow-y-auto">
       <h2>Comp</h2>
-      <ClipElement @remove="removeClip" v-for="x in clips.filter( (clip) => clip.is_selected)" :clip=x></ClipElement>
+      <ClipElement @remove="removeClip" v-for="x in clips.filter((clip) => clip.is_selected)" :clip=x></ClipElement>
     </div>
   </div>
   <div class="flex-none basis-full mt-4">
     <button class="btn btn-success" type="button" @click="loadClips()">Read clips.json</button>
-    <button class="btn btn-primary" type="button" @click="loadClips()">Read compilation.json</button>
+    <button class="btn btn-primary" type="button" @click="loadCompilation()">Read compilation.json</button>
     <button class="btn btn-primary" type="button" @click="loadClips()">Shuffle compilation</button>
     <button class="btn btn-primary" type="button" @click="loadClips()">Select Low Freq</button>
     <button class="btn btn-primary" type="button" @click="loadClips()">Select Most Views</button>
-    <button class="btn btn-error" type="button" @click="loadClips()">Save compilation</button>
+    <button class="btn btn-error" type="button" @click="saveCompilation()">Save compilation</button>
   </div>
 </template>
-
 
 <style>
 .logo {

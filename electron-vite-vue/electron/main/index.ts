@@ -128,6 +128,7 @@ ipcMain.on('write-file', (_, fileName, fileContent) => {
     writeFileSync(fileName, fileContent);
 });
 
+
 async function handleGetClips() {
   console.log("Async: handleGetClips");
 
