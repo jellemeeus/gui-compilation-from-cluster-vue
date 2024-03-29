@@ -64,8 +64,9 @@ type Data = {
 
     <div class="row buttons fixed-bottom">
       <div class="col-12">
-        <button class="btn" type="button" @click="loadJSON()">Load JSON</button>
-        <button class="btn" type="button" @click="fetchClips()">Fetch Clips</button>
+        <button class="btn btn-secondary" type="button" @click="loadJSON()">Load JSON</button>
+<button class="btn">Hello daisyui</button>
+        <button class="btn btn-primary" type="button" @click="fetchClips()">Fetch Clips</button>
       </div>
     </div>
   </div>
@@ -106,11 +107,6 @@ type Data = {
 
 .buttons {
   padding-bottom: 10px;
-}
-
-.btn {
-  margin-left: 5px;
-  margin-right: 5px;
 }
 
 .clips-and-compilation {
