@@ -4,7 +4,7 @@ import { ref } from 'vue';
 import { Clip } from 'src/components/models.ts';
 
 
-defineProps<{ clip: Clip }>()
+defineProps<{ clip: Clip, isCompilation: boolean }>()
 
 import { defineEmits } from 'vue'
 
@@ -16,7 +16,7 @@ const isPlayerHidden = ref(true)
 
 <template>
   <div class="card bg-base-100 shadow-xl image-full text-left">
-    <figure class="h-80">
+    <figure class="h-75">
       <img :src="clip.thumbnail_url" width="100%" class="max-h-80"
         @error="(e) => { e.target.onerror = null; e.target.src = '/src/assets/no-image.png' }" />
     </figure>
@@ -44,7 +44,7 @@ const isPlayerHidden = ref(true)
         </div>
       </div>
 
-        <div v-if="!clip.is_selected" class="justify-end">
+        <div v-if="!isCompilation" class="justify-end">
           <button @click="$emit('add', clip.url)" class="btn btn-primary"> <i class="fa-regular fa-plus"></i> </button>
           <button @click="$emit('hide', clip.url)" class="btn btn-error"> Hide </button>
         </div>

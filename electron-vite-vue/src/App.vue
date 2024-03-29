@@ -1,16 +1,28 @@
 <script setup lang="ts">
 import ClipElement from './components/ClipElement.vue'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 
 import { Clip } from 'src/components/models.ts';
 
 const clips = ref(<Clip>[]);
+const compilation = ref(<Clip>[]);
 
-async function fetchClips() {
-  // @ts-ignore:next-line
-  await window.ipcRenderer.getClips()
-}
+const amountOfCompilation = computed(() => {
+  return compilation.value.length
+})
 
+const totalDuration = computed(() => {
+  return compilation.value.reduce((prev, curr) => prev + curr.duration, 0)
+})
+
+const frequency = computed(() => {
+  if (compilation.value.length <= 0) {
+    return {}
+  }
+  let freq = {}
+  compilation.value.forEach((clip) => freq[clip.creator] = (freq[clip.creator] || 0) + 1)
+  return freq
+})
 
 
 function clip_data_to_compilation(c) {
@@ -29,10 +41,8 @@ function clip_data_to_compilation(c) {
     "title": c.title,
     "duration": c.duration,
     "view_count": c.view_count,
-    "is_selected": false,
   }
 }
-
 
 function fill_from_clips(clips_data) {
   let newClips: Array<Clip> = []
@@ -40,7 +50,9 @@ function fill_from_clips(clips_data) {
     .forEach((clip) => (
       newClips.push(clip_data_to_compilation(clip))
     ));
-  console.debug(clips)
+  // Filter clips that are present in compilation
+  const compURLs = compilation.value.map(clip => clip.url)
+  newClips = newClips.filter(clip => !compURLs.includes(clip.url))
   clips.value = newClips;
 }
 
@@ -67,8 +79,7 @@ function fill_from_compilation(compilation_data) {
 }
 
 async function saveCompilation() {
-  const compilationArray = clips.value.filter((clip) => clip.is_selected);
-  const compilationCSV = compilationArray.map((clip) => clip.url).join(',');
+  const compilationCSV = clips.value.map((clip) => clip.url).join(',');
   console.log(compilationCSV)
   // @ts-ignore:next-line
   await window.ipcRenderer.writeFile('compilation.csv', compilationCSV);
@@ -80,46 +91,127 @@ async function loadCompilation() {
   fill_from_compilation(data)
 }
 
+async function shuffleCompilation() {
+  compilation.value = compilation.value.sort(() => Math.random() - 0.5);
+}
 
-async function removeClip(url: string) {
-  clips.value.forEach((clip) => {
-    if (clip.url === url) {
-      clip.is_selected = false;
+
+async function removeComp(url: string) {
+  compilation.value = compilation.value.filter(clip => clip.url !== url)
+}
+
+async function hideClip(url: string) {
+  clips.value = clips.value.filter(clip => clip.url !== url)
+}
+
+async function upComp(url: string) {
+  console.log('up')
+  const index = compilation.value.findIndex(clip => clip.url === url);
+  if (index > 0) {
+    const clipToMove = compilation.value[index];
+    compilation.value.splice(index, 1);
+    compilation.value.splice(index - 1, 0, clipToMove);
+  }
+}
+
+async function downComp(url: string) {
+  console.log('down')
+  const index = compilation.value.findIndex(clip => clip.url === url);
+  if (index < compilation.value.length - 1) {
+    const temp = compilation.value[index];
+    compilation.value[index] = compilation.value[index + 1];
+    compilation.value[index + 1] = temp;
+  }
+}
+
+async function topComp(url: string) {
+  console.log('top')
+  const index = compilation.value.findIndex(clip => clip.url === url);
+  if (index > 0) {
+    const temp = compilation.value[index];
+    compilation.value.splice(index, 1);
+    compilation.value.unshift(temp);
+  }
+}
+
+async function bottomComp(url: string) {
+  console.log('bottom')
+  const index = compilation.value.findIndex(clip => clip.url === url);
+
+  if (index < compilation.value.length - 1) {
+    const temp = compilation.value[index];
+    compilation.value.splice(index, 1);
+    compilation.value.push(temp);
+  }
+}
+
+async function addMostViews() {
+  const clipToAdd = clips.value.shift();
+  compilation.value.push(clipToAdd)
+}
+
+async function addLowFrequency() {
+  function getLowestFrequencyIndex() {
+    // Check for undefined frequency
+    let index = clips.value.findIndex(
+      (clip) => frequency[clip.creator] === undefined
+    )
+    if (index >= 0) {
+      return index
     }
-  });
+    // Loop through frequencies from 1 up counting matches
+    for (let i = 1; i < 128; i++) {
+      index = clips.value.findIndex(
+        (clip) => frequency[clip.creator] === i
+      )
+      if (index >= 0) {
+        return index
+      }
+    }
+  }
+  const index = getLowestFrequencyIndex();
+  console.log(index)
+  const clipToAdd = clips.value[index];
+  compilation.value.push(clipToAdd)
+  clips.value.splice(index, 1);
 }
 
 async function addClip(url: string) {
   clips.value.forEach((clip) => {
     if (clip.url === url) {
-      clip.is_selected = true;
+      compilation.value.push(clip)
     }
   });
+  clips.value = clips.value.filter((clip) => clip.url !== url);
 }
 
 </script>
 
 <template>
-  <div>
-    Title:
+  <div class="flex flex-row h-[85dvh] mt-5">
+    <div class="flex-none basis-6/12 overflow-y-auto">
+      <h1 class="text-3xl font-extrabold dark:text-white">Clips</h1>
+      <ClipElement @add="addClip" @hide="hideClip" v-for="x in clips" :clip=x :isCompilation="false"></ClipElement>
+    </div>
+    <div class="flex-none basis-6/12 overflow-y-auto">
+      <h1 class="text-3xl font-extrabold dark:text-white">Compilation</h1>
+      <ClipElement @up="upComp" @down="downComp" @top="topComp" @bottom="bottomComp" @remove="removeComp"
+        :isCompilation="true" v-for="x in compilation" :clip=x></ClipElement>
+    </div>
   </div>
-  <div class="flex flex-row h-[85dvh]">
-    <div class="flex-none basis-6/12 overflow-y-auto">
-      <h2>Clips</h2>
-      <ClipElement @add="addClip" v-for="x in clips.filter((clip) => !clip.is_selected)" :clip=x></ClipElement>
-    </div>
-    <div class="flex-none basis-6/12 overflow-y-auto">
-      <h2>Comp</h2>
-      <ClipElement @remove="removeClip" v-for="x in clips.filter((clip) => clip.is_selected)" :clip=x></ClipElement>
-    </div>
+  <div class="bg-primary text-primary-content">
+    Duration: {{ totalDuration }}s
+    Clips: {{ amountOfCompilation }}
+    <br>
+    Freq: {{ frequency }}
   </div>
   <div class="flex-none basis-full mt-4">
     <button class="btn btn-success" type="button" @click="loadClips()">Read clips.json</button>
     <button class="btn btn-primary" type="button" @click="loadCompilation()">Read compilation.json</button>
-    <button class="btn btn-primary" type="button" @click="loadClips()">Shuffle compilation</button>
-    <button class="btn btn-primary" type="button" @click="loadClips()">Select Low Freq</button>
-    <button class="btn btn-primary" type="button" @click="loadClips()">Select Most Views</button>
-    <button class="btn btn-error" type="button" @click="saveCompilation()">Save compilation</button>
+    <button class="btn btn-primary" type="button" @click="shuffleCompilation()">Shuffle compilation</button>
+    <button class="btn btn-primary" type="button" @click="addLowFrequency()">Select Low Freq</button>
+    <button class="btn btn-primary" type="button" @click="addMostViews()">Select Most Views</button>
+    <button class="btn btn-error" type="button" @click="saveCompilation()">Save compilation.csv</button>
   </div>
 </template>
 
