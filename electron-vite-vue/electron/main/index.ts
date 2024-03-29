@@ -1,4 +1,4 @@
-import { app, BrowserWindow, shell, ipcMain } from "electron";
+import { app, BrowserWindow, shell, ipcMain, session } from "electron";
 import { release } from "node:os";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -29,9 +29,10 @@ globalThis.__dirname = dirname(__filename);
 //
 process.env.DIST_ELECTRON = join(__dirname, "..");
 process.env.DIST = join(process.env.DIST_ELECTRON, "../dist");
-process.env.VITE_PUBLIC = process.env.VITE_DEV_SERVER_URL
-  ? join(process.env.DIST_ELECTRON, "../public")
-  : process.env.DIST;
+//process.env.VITE_PUBLIC = process.env.VITE_DEV_SERVER_URL
+//  ? join(process.env.DIST_ELECTRON, "../public")
+//  : process.env.DIST;
+process.env.VITE_PUBLIC = process.env.DIST;
 
 // Disable GPU Acceleration for Windows 7
 if (release().startsWith("6.1")) app.disableHardwareAcceleration();
@@ -56,13 +57,73 @@ const url = process.env.VITE_DEV_SERVER_URL;
 const indexHtml = join(process.env.DIST, "index.html");
 
 async function createWindow() {
+  // modified from: https://github.com/BarryCarlyon/twitch_misc/blob/main/player/electron/app.js
+  // The first handler intercepts requests to Twitch clip URLs. It parses
+  // the URL to extract some parameters. It then modifies the URL by setting the "parent"
+  // parameter to "localhost" and the "referrer" to a local URL. This is likely done
+  // to make the clip embed think the request is coming from a local page rather than directly to avoid cross-origin restrictions.
+
+  session.defaultSession.webRequest.onBeforeRequest(
+    {
+      urls: ["https://clips.twitch.tv/*"],
+    },
+    (details, cb) => {
+      var redirectURL = details.url;
+
+      var params = new URLSearchParams(
+        redirectURL.replace("https://clips.twitch.tv/", "")
+      );
+      if (params.get("parent") != "") {
+        cb({});
+        return;
+      }
+      params.set("parent", "localhost");
+      params.set("referrer", "https://localhost/");
+
+      var redirectURL = "https://clips.twitch.tv/" + params.toString();
+      console.log("Adjust to", redirectURL);
+
+      cb({
+        cancel: false,
+        redirectURL,
+      });
+    }
+  );
+
+  // The second handler intercepts responses from Twitch site URLs. It deletes the "Content-Security-Policy" header from the response headers.
+  // This may be done to relax the security policy and allow the app more access to Twitch page resources.
+  session.defaultSession.webRequest.onHeadersReceived(
+    {
+      urls: [
+        "https://www.twitch.tv/*",
+        "https://clips.twitch.tv/*",
+        "https://embed.twitch.tv/*",
+      ],
+    },
+    (details, cb) => {
+      var responseHeaders = details.responseHeaders;
+
+      console.log("headers", details.url, responseHeaders);
+      console.log("headers", details.url, responseHeaders);
+      console.log("headers", details.url, responseHeaders);
+      console.log("headers", details.url, responseHeaders);
+      console.log("headers", details.url, responseHeaders);
+
+      delete responseHeaders["Content-Security-Policy"];
+      cb({
+        cancel: false,
+        responseHeaders,
+      });
+    }
+  );
+
   win = new BrowserWindow({
     title: "Main window",
     icon: join(process.env.VITE_PUBLIC, "favicon.ico"),
     webPreferences: {
       preload,
       // Warning: Enable nodeIntegration and disable contextIsolation is not secure in production
-      // nodeIntegration: true,
+      //nodeIntegration: true,
 
       // Consider using contextBridge.exposeInMainWorld
       // Read more on https://www.electronjs.org/docs/latest/tutorial/context-isolation
@@ -77,6 +138,7 @@ async function createWindow() {
     win.webContents.openDevTools();
   } else {
     win.loadFile(indexHtml);
+    win.webContents.openDevTools();
   }
 
   // Test actively push message to the Electron-Renderer
@@ -116,18 +178,17 @@ app.on("activate", () => {
   }
 });
 
-ipcMain.handle('read-json', (_, fileName) => {
-    const fileContent = readFileSync(fileName, { encoding: 'utf-8' })
-    console.log(`read json! ${fileContent}`)
-    const json = JSON.parse(fileContent);
-    return json
+ipcMain.handle("read-json", (_, fileName) => {
+  const fileContent = readFileSync(fileName, { encoding: "utf-8" });
+  console.log(`read json! ${fileContent}`);
+  const json = JSON.parse(fileContent);
+  return json;
 });
 
-ipcMain.on('write-file', (_, fileName, fileContent) => {
-    console.log(`saving! ${fileContent}`);
-    writeFileSync(fileName, fileContent);
+ipcMain.on("write-file", (_, fileName, fileContent) => {
+  console.log(`saving! ${fileContent}`);
+  writeFileSync(fileName, fileContent);
 });
-
 
 async function handleGetClips() {
   console.log("Async: handleGetClips");
