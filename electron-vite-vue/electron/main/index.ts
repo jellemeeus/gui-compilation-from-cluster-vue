@@ -80,7 +80,6 @@ async function createWindow() {
       params.set("referrer", "https://localhost/");
 
       var redirectURL = "https://clips.twitch.tv/" + params.toString();
-      console.log("Adjust to", redirectURL);
 
       cb({
         cancel: false,
@@ -101,12 +100,6 @@ async function createWindow() {
     },
     (details, cb) => {
       var responseHeaders = details.responseHeaders;
-
-      console.log("headers", details.url, responseHeaders);
-      console.log("headers", details.url, responseHeaders);
-      console.log("headers", details.url, responseHeaders);
-      console.log("headers", details.url, responseHeaders);
-      console.log("headers", details.url, responseHeaders);
 
       delete responseHeaders["Content-Security-Policy"];
       cb({
