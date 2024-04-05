@@ -31,18 +31,18 @@ const isPlayerHidden = ref(true)
       />
     </figure>
     <div class="card-body">
-      <h3 class="card-title card_content">{{ clip.creator }} {{ clip.game }}</h3>
-<!--
+      <h3 class="card-title card_content">{{ clip.creator }} {{  clip.game === "unknown" ? "" : clip.game }}</h3>
+      <!-- v-if="clip.game === 'unknown'" -->
       <div class="flex flex-row">
-        <div v-if="clip.embed_url == null" class="badge badge-secondary">
-          No embed
+        <div class="badge badge-primary">
+          {{ clip.game_id }}
         </div>
       </div>
--->
-
-      <p class="card_content">{{ clip.title }}</p>
+      <p class="card_content">{{ clip.title }} </p>
       <p class="card_content">
-        {{ clip.duration }}s {{ clip.view_count }} {{ clip.created_at }}
+        {{ clip.duration.toFixed(2) }}s
+        {{ clip.view_count.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") }}
+        {{ clip.created_at }}
         {{ clip.published }} {{ clip.language }}
       </p>
 
